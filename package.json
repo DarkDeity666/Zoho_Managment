@@ -2,7 +2,9 @@
   "name": "schooldesk-monorepo",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["apps/web"],
+  "workspaces": [
+    "apps/web"
+  ],
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
@@ -14,5 +16,10 @@
     "zoho:plan": "node scripts/zoho.mjs plan",
     "zoho:provision": "node scripts/zoho.mjs provision"
   },
-  "engines": {"node": ">=22.12.0"}
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
 }

@@ -28,27 +28,27 @@ No external keys or database account are required. `npm run setup` generates `AP
 
 The API refreshes short-lived access tokens automatically. You do not need to copy an access token into `.env`. Do not change regions to bypass an OAuth error: accounts, tokens, and organization must match. See Zoho's [Self Client flow](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html) and [token refresh documentation](https://www.zoho.com/crm/developer/docs/api/v8/refresh.html).
 
-| Variable | Source / use |
-|---|---|
-| `ZOHO_CLIENT_ID` | API Console → Self Client → Client Secret |
-| `ZOHO_CLIENT_SECRET` | Same screen; keep private |
-| `ZOHO_REFRESH_TOKEN` | Created by `npm run zoho:token` from your grant |
-| `ZOHO_GRANT_CODE` | Temporary Self Client authorization code; cleared after exchange |
-| `ZOHO_PROFILE_ID` | Your CRM Administrator profile's numeric ID; used only during provisioning |
-| `ZOHO_ACCOUNTS_URL` | Data-center-specific accounts service |
-| `ZOHO_API_URL` | `api_domain` returned during OAuth; do not include `/crm/v8` |
-| `ZOHO_WEBFORM_EMBED_URL` | Optional generated CRM Webform iframe/share URL, if your CRM provides one |
-| `APP_ADMIN_PASSWORD` | Random value generated locally by setup; replace if sharing the demo file |
+| Variable                 | Source / use                                                               |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `ZOHO_CLIENT_ID`         | API Console → Self Client → Client Secret                                  |
+| `ZOHO_CLIENT_SECRET`     | Same screen; keep private                                                  |
+| `ZOHO_REFRESH_TOKEN`     | Created by `npm run zoho:token` from your grant                            |
+| `ZOHO_GRANT_CODE`        | Temporary Self Client authorization code; cleared after exchange           |
+| `ZOHO_PROFILE_ID`        | Your CRM Administrator profile's numeric ID; used only during provisioning |
+| `ZOHO_ACCOUNTS_URL`      | Data-center-specific accounts service                                      |
+| `ZOHO_API_URL`           | `api_domain` returned during OAuth; do not include `/crm/v8`               |
+| `ZOHO_WEBFORM_EMBED_URL` | Optional generated CRM Webform iframe/share URL, if your CRM provides one  |
+| `APP_ADMIN_PASSWORD`     | Random value generated locally by setup; replace if sharing the demo file  |
 
 For a profile ID, open CRM's Administrator profile in Setup → Security Control → Profiles and inspect its numeric identifier, or use the authenticated [Profiles API](https://www.zoho.com/crm/developer/docs/api/v8/profiles-api.html) with `ZohoCRM.settings.profiles.READ`. Do not use a user ID or organization ID in this field.
 
 Typical regional pairs:
 
-| Region | Accounts | API |
-|---|---|---|
-| India | `https://accounts.zoho.in` | `https://www.zohoapis.in` |
-| US | `https://accounts.zoho.com` | `https://www.zohoapis.com` |
-| EU | `https://accounts.zoho.eu` | `https://www.zohoapis.eu` |
+| Region    | Accounts                       | API                           |
+| --------- | ------------------------------ | ----------------------------- |
+| India     | `https://accounts.zoho.in`     | `https://www.zohoapis.in`     |
+| US        | `https://accounts.zoho.com`    | `https://www.zohoapis.com`    |
+| EU        | `https://accounts.zoho.eu`     | `https://www.zohoapis.eu`     |
 | Australia | `https://accounts.zoho.com.au` | `https://www.zohoapis.com.au` |
 
 Prefer the API domain returned by Zoho over guessing a domain. See [Zoho OAuth](https://www.zoho.com/crm/developer/docs/api/v8/oauth-overview.html).

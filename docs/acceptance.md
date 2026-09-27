@@ -4,20 +4,20 @@
 
 Local source and runnable companion app: implemented. Automated checks: 15 Go tests, 5 frontend tests, Go vet and frontend build passed. Live Zoho provisioning, native Deluge compilation, native permissions, generated CRM Webform, and real CRM/Creator access: **not performed without the user's Zoho account**. No assignment submission email has been sent.
 
-| Assignment requirement | Implementation | Live-account completion |
-|---|---|---|
-| CRM Webform → Lead | Local enquiry form writes Leads through the Go adapter | Generate and publish the native CRM Webform |
-| Admissions | Leads pipeline, follow-up date, confirmation button, idempotent record creation | Attach CRM button and enforce status/layout permissions |
-| Unique students and history | Students + annual Enrollments; promotion | Configure native permissions and promotion button |
-| Academic structure | Years, classes, sections, subjects, teachers, teaching assignments | Provision schema and enter the school's reference data |
-| Attendance | Date validation, unique composite key, percent, history | Attach Client Script, validation and rollup workflow |
-| Examinations | Exams, papers, per-student results, grade/percentage | Attach validation, Client Script, calculation workflow |
-| Fees/installments | Immutable payment ledger, balances, overdue/credit | Configure finance permissions and rollup workflows |
-| Private parent application | Creator functions and complete private HTML/Deluge page; demo previews | Create Creator portal, connection, invitations and private permissions |
-| CRM as source of truth | Live adapter and Creator read-time CRM lookup | Connect real OAuth credentials and verify changes appear |
-| Deluge automation | Admission, promotion, grade, attendance, fees, support and reconciliation | Compile and associate functions in tenant |
-| Reports/dashboards | Local dashboard/exports; native report definitions | Create CRM reports and dashboard objects |
-| Additional feature | Early support for low attendance and overdue fees | Attach/schedule native School_Followups review |
+| Assignment requirement      | Implementation                                                                  | Live-account completion                                                |
+| --------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| CRM Webform → Lead          | Local enquiry form writes Leads through the Go adapter                          | Generate and publish the native CRM Webform                            |
+| Admissions                  | Leads pipeline, follow-up date, confirmation button, idempotent record creation | Attach CRM button and enforce status/layout permissions                |
+| Unique students and history | Students + annual Enrollments; promotion                                        | Configure native permissions and promotion button                      |
+| Academic structure          | Years, classes, sections, subjects, teachers, teaching assignments              | Provision schema and enter the school's reference data                 |
+| Attendance                  | Date validation, unique composite key, percent, history                         | Attach Client Script, validation and rollup workflow                   |
+| Examinations                | Exams, papers, per-student results, grade/percentage                            | Attach validation, Client Script, calculation workflow                 |
+| Fees/installments           | Immutable payment ledger, balances, overdue/credit                              | Configure finance permissions and rollup workflows                     |
+| Private parent application  | Creator functions and complete private HTML/Deluge page; demo previews          | Create Creator portal, connection, invitations and private permissions |
+| CRM as source of truth      | Live adapter and Creator read-time CRM lookup                                   | Connect real OAuth credentials and verify changes appear               |
+| Deluge automation           | Admission, promotion, grade, attendance, fees, support and reconciliation       | Compile and associate functions in tenant                              |
+| Reports/dashboards          | Local dashboard/exports; native report definitions                              | Create CRM reports and dashboard objects                               |
+| Additional feature          | Early support for low attendance and overdue fees                               | Attach/schedule native School_Followups review                         |
 
 ## Local demonstration
 
