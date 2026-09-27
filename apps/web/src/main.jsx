@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { LayoutDashboard, Users, ClipboardList, BookOpen, CalendarCheck, GraduationCap, Wallet, Bell, Settings, Search, Plus, ArrowUpRight, ArrowRight, ChevronRight, ChevronDown, LogOut, X, Check, Download, RefreshCw, ShieldCheck, Menu, School, Mail, ExternalLink, CircleHelp, AlertCircle } from 'lucide-react';
-import schema from '../../../..//packages/schema/schema.json';
+import schema from '../../../packages/schema/schema.json';
 import { ref, rows, lookup, label, money, initials, dateLabel, attendance, feeSummary, performance, alerts, exportCSV } from './model';
 import './style.css';
 

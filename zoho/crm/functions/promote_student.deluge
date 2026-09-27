@@ -1,0 +1,35 @@
+// Button function on an enrollment. Map enrollment_id to ID and next_section_id
+// to an administrator-selected Next Section lookup field added to that layout.
+string button.promote_student(string enrollment_id, string next_section_id)
+{
+    current = zoho.crm.getRecordById("Enrollments",enrollment_id.toLong());
+    section = zoho.crm.getRecordById("Sections",next_section_id.toLong());
+    year = zoho.crm.getRecordById("Academic_Years",section.get("Academic_Year").get("id").toLong());
+    old_year = zoho.crm.getRecordById("Academic_Years",current.get("Academic_Year").get("id").toLong());
+    if(year.get("Start_Date").toDate() <= old_year.get("End_Date").toDate())
+    {
+        return "Select a section in a later, non-overlapping academic year.";
+    }
+    student_id = current.get("Student").get("id");
+    key = student_id + "-" + year.get("id");
+    existing = zoho.crm.searchRecords("Enrollments","(Unique_Key:equals:" + key + ")");
+    found = false;
+    for each row in existing
+    {
+        if(row.get("Unique_Key") == key)
+        {
+            if(row.get("Section").get("id") != next_section_id) { return "Student is already enrolled in another section that year."; }
+            found = true;
+        }
+    }
+    if(!found)
+    {
+        if(current.get("Status") != "Active") { return "Only an active enrollment can be promoted."; }
+        next = {"Name":current.get("Student").get("name") + " - " + year.get("Name"),"Student":student_id,"Section":next_section_id,"Academic_Year":year.get("id"),"Status":"Active","Start_Date":year.get("Start_Date"),"Unique_Key":key};
+        result = zoho.crm.createRecord("Enrollments",next);
+        if(result.get("id") == null) { return "New enrollment was not created. Retry safely."; }
+    }
+    result = zoho.crm.updateRecord("Enrollments",enrollment_id.toLong(),{"Status":"Completed"});
+    if(result.get("id") == null) { return "New enrollment created. Retry to complete the previous enrollment."; }
+    return "Promotion complete. Attendance, results and payments remain with their original academic year.";
+}

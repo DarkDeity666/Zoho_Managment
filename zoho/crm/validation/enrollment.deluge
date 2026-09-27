@@ -1,0 +1,20 @@
+record = crmAPIRequest.toMap().get("record");
+try
+{
+    section = zoho.crm.getRecordById("Sections",record.get("Section").get("id").toLong());
+    year_id = section.get("Academic_Year").get("id");
+    year = zoho.crm.getRecordById("Academic_Years",year_id.toLong());
+    if(year_id != record.get("Academic_Year").get("id") || record.get("Start_Date").toDate() < year.get("Start_Date").toDate() || record.get("Start_Date").toDate() > year.get("End_Date").toDate())
+    {
+        return {"status":"failure","message":"Enrollment year and start date must match the section academic year."};
+    }
+    if(ifnull(record.get("Unique_Key"),"") != record.get("Student").get("id") + "-" + year_id)
+    {
+        return {"status":"failure","message":"Enrollment key is incorrect."};
+    }
+    return {"status":"success"};
+}
+catch(e)
+{
+    return {"status":"failure","message":"Student, section, academic year and start date are required."};
+}

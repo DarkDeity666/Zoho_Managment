@@ -1,0 +1,19 @@
+record = crmAPIRequest.toMap().get("record");
+try
+{
+    maximum = record.get("Max_Marks").toDecimal();
+    passing = record.get("Pass_Marks").toDecimal();
+    if(maximum <= 0 || passing < 0 || passing > maximum)
+    {
+        return {"status":"failure","message":"Maximum must be positive. Passing marks must be between zero and maximum."};
+    }
+    if(ifnull(record.get("Unique_Key"),"") != record.get("Exam").get("id") + "-" + record.get("Subject").get("id"))
+    {
+        return {"status":"failure","message":"Exam paper key is incorrect."};
+    }
+    return {"status":"success"};
+}
+catch(e)
+{
+    return {"status":"failure","message":"Exam, subject, maximum and passing marks are required."};
+}

@@ -1,0 +1,41 @@
+// Payment create workflow: fee_id = Payments.Fee_Assessment lookup ID.
+// Fee assessment create workflow: fee_id = Fee_Assessments.ID.
+// Also run daily through a CRM schedule to roll unpaid balances into Overdue.
+void automation.recalculate_fee(string fee_id)
+{
+    fee = zoho.crm.getRecordById("Fee_Assessments",fee_id.toLong());
+    collected = 0.0;
+    complete = false;
+    for each page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        payments = zoho.crm.searchRecords("Payments","(Fee_Assessment:equals:" + fee_id + ")",page,200);
+        for each payment in payments
+        {
+            if(payment.get("Fee_Assessment").get("id") == fee_id)
+            {
+                collected = collected + payment.get("Amount").toDecimal();
+            }
+        }
+        if(payments.size() < 200) { complete = true; break; }
+    }
+    if(complete)
+    {
+        outstanding = (fee.get("Amount").toDecimal() - collected).round(2);
+        credit = 0.0;
+        status = "Unpaid";
+        if(collected > 0) { status = "Partial"; }
+        if(outstanding <= 0) { credit = 0 - outstanding; outstanding = 0; status = "Paid"; }
+        else if(fee.get("Due_Date").toDate() < zoho.currentdate) { status = "Overdue"; }
+        update = Map();
+        update.put("Amount_Collected",collected.round(2));
+        update.put("Outstanding",outstanding);
+        update.put("Credit",credit);
+        update.put("Payment_Status",status);
+        response = zoho.crm.updateRecord("Fee_Assessments",fee_id.toLong(),update);
+        if(response.get("id") == null) { info "Fee rollup update failed. Retry reconciliation."; }
+    }
+    else
+    {
+        info "Fee rollup exceeded 2000 payments. No partial total was written; use bulk reconciliation.";
+    }
+}

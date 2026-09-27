@@ -1,0 +1,26 @@
+// Daily schedule. Run in a trial/small school; for a large school use persisted
+// cursors and batches sized to the org's function/API execution allowance.
+void schedule.reconcile_school()
+{
+    finished = false;
+    for each page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        enrollments = zoho.crm.getRecords("Enrollments",page,200);
+        for each enrollment in enrollments
+        {
+            automation.recalculate_attendance(enrollment.get("id"));
+            support_result = standalone.review_support(enrollment.get("id"));
+            if(support_result != "Support review complete.") { info support_result; }
+        }
+        if(enrollments.size() < 200) { finished = true; break; }
+    }
+    if(!finished) { info "Enrollment reconciliation reached 2000 records. Configure paged batch schedules before adding more records."; }
+    fees_finished = false;
+    for each page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        fees = zoho.crm.getRecords("Fee_Assessments",page,200);
+        for each fee in fees { automation.recalculate_fee(fee.get("id")); }
+        if(fees.size() < 200) { fees_finished = true; break; }
+    }
+    if(!fees_finished) { info "Fee reconciliation reached 2000 records. Configure paged batch schedules."; }
+}
