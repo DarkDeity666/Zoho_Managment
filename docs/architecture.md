@@ -24,19 +24,19 @@ erDiagram
   Enrollments ||--o{ School_Followups : flags
 ```
 
-| Module | Purpose / invariant |
-|---|---|
-| Leads | Child is `Last_Name`; parent name/email are separate. Status pipeline, desired section, follow-up date. Email is not unique, so siblings can enquire. |
-| Students | Stable person record with unique `Student_ID`. `Admission_Key` ties a confirmed enquiry to exactly one student. |
-| Academic_Years / School_Classes / Sections | Section belongs to a class and a year. A new year gets new section records. |
-| Teachers / Subjects / Teaching_Assignments | Teacher and subject assignment for a particular section; one assignment per section/subject. |
-| Enrollments | Student + academic year is unique. Previous enrollments remain unchanged when promoted. |
-| Parent_Links | Student + normalized parent email is unique; explicit `Active`/`Revoked` access supports siblings and multiple guardians. |
-| Attendance | Enrollment + ISO date is unique; must be within enrollment/year dates and not in the future. |
-| Exams / Exam_Papers | Exam belongs to section; paper belongs to exam + subject and defines maximum/pass marks. |
-| Results | Enrollment + paper is unique; exam section must match; marks in range. |
-| Fee_Assessments / Payments | Fee belongs to enrollment; each installment has its own immutable record and unique receipt reference. |
-| School_Followups | Derived native CRM queue. Stable keys reopen/resolve an existing concern rather than creating duplicates. |
+| Module                                     | Purpose / invariant                                                                                                                                   |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leads                                      | Child is `Last_Name`; parent name/email are separate. Status pipeline, desired section, follow-up date. Email is not unique, so siblings can enquire. |
+| Students                                   | Stable person record with unique `Student_ID`. `Admission_Key` ties a confirmed enquiry to exactly one student.                                       |
+| Academic_Years / School_Classes / Sections | Section belongs to a class and a year. A new year gets new section records.                                                                           |
+| Teachers / Subjects / Teaching_Assignments | Teacher and subject assignment for a particular section; one assignment per section/subject.                                                          |
+| Enrollments                                | Student + academic year is unique. Previous enrollments remain unchanged when promoted.                                                               |
+| Parent_Links                               | Student + normalized parent email is unique; explicit `Active`/`Revoked` access supports siblings and multiple guardians.                             |
+| Attendance                                 | Enrollment + ISO date is unique; must be within enrollment/year dates and not in the future.                                                          |
+| Exams / Exam_Papers                        | Exam belongs to section; paper belongs to exam + subject and defines maximum/pass marks.                                                              |
+| Results                                    | Enrollment + paper is unique; exam section must match; marks in range.                                                                                |
+| Fee_Assessments / Payments                 | Fee belongs to enrollment; each installment has its own immutable record and unique receipt reference.                                                |
+| School_Followups                           | Derived native CRM queue. Stable keys reopen/resolve an existing concern rather than creating duplicates.                                             |
 
 ## Admission and year history
 

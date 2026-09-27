@@ -20,12 +20,12 @@ Create reference data in this order: Academic Years, School Classes, Sections, S
 
 Create school-specific CRM profiles. Suggested assignments:
 
-| Profile | Access |
-|---|---|
-| Administrator | Academic configuration, parent access links, admission confirmation/promotion, correction supervision |
-| Admissions | Leads and follow-up dates; read necessary sections/student links; confirm via button |
-| Teacher | Assigned students/enrollments, Attendance and Results; read exam papers; no payment or parent-link administration |
-| Finance | Fee assessments and payment creation; read student/enrollment identifiers; no marks or parent-link administration |
+| Profile       | Access                                                                                                            |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Administrator | Academic configuration, parent access links, admission confirmation/promotion, correction supervision             |
+| Admissions    | Leads and follow-up dates; read necessary sections/student links; confirm via button                              |
+| Teacher       | Assigned students/enrollments, Attendance and Results; read exam papers; no payment or parent-link administration |
+| Finance       | Fee assessments and payment creation; read student/enrollment identifiers; no marks or parent-link administration |
 
 Use CRM sharing rules/ownership and field permissions to restrict teacher records. The companion has a single administrator account and is not a substitute for configuring these native staff roles.
 
@@ -40,27 +40,27 @@ Use CRM sharing rules/ownership and field permissions to restrict teacher record
 
 Create each function in the category named in its source file. When CRM generates a function wrapper, retain that wrapper and paste the body inside it, matching the declared arguments/return type. Files in `validation/` are already **bodies** that expect CRM's `crmAPIRequest`; do not paste them as workflow functions. Save/compile in CRM, resolve tenant API names if needed, and run the acceptance tests before marking this deployment ready.
 
-| Function | Context / association |
-|---|---|
-| `button.confirm_admission` | Leads detail-page button, `lead_id` mapped to Lead ID |
-| `button.promote_student` | Enrollments detail-page button; map current ID and a next-section lookup ID |
-| `automation.calculate_result` | Results create and Marks edit; `result_id` = Result ID |
-| `automation.recalculate_attendance` | Attendance create and Status edit; `enrollment_id` = Enrollment lookup ID |
-| `automation.recalculate_fee` | Fee assessment create and Payments create; `fee_id` = the relevant assessment ID |
-| `standalone.review_support` | Called by support review hooks or reconciliation; enrollment ID argument |
-| `schedule.reconcile_school` | Daily schedule, e.g. 18:00 school timezone; recomputes rollups and support queue |
+| Function                            | Context / association                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `button.confirm_admission`          | Leads detail-page button, `lead_id` mapped to Lead ID                            |
+| `button.promote_student`            | Enrollments detail-page button; map current ID and a next-section lookup ID      |
+| `automation.calculate_result`       | Results create and Marks edit; `result_id` = Result ID                           |
+| `automation.recalculate_attendance` | Attendance create and Status edit; `enrollment_id` = Enrollment lookup ID        |
+| `automation.recalculate_fee`        | Fee assessment create and Payments create; `fee_id` = the relevant assessment ID |
+| `standalone.review_support`         | Called by support review hooks or reconciliation; enrollment ID argument         |
+| `schedule.reconcile_school`         | Daily schedule, e.g. 18:00 school timezone; recomputes rollups and support queue |
 
 For the native promotion button, add an optional `Next_Section` lookup to Sections on the Enrollment layout and map its ID into `next_section_id`. This selection field is only a button input; it does not replace the current section. Allow staff to choose it even when historical enrollment relationships are read-only. Compile supporting functions before the schedule that calls them.
 
 Associate function-based **Save Only** validation rules:
 
-| Module | Field to attach | Validation source | onSave Client Script |
-|---|---|---|---|
-| Attendance | Unique_Key | `validation/attendance.deluge` | `attendance_on_save.js` |
-| Results | Unique_Key | `validation/result.deluge` | `result_on_save.js` |
-| Payments | Amount | `validation/payment.deluge` | none; mandatory unique Reference |
-| Exam_Papers | Unique_Key | `validation/exam_paper.deluge` | `exam_paper_on_save.js` |
-| Enrollments | Unique_Key | `validation/enrollment.deluge` | `enrollment_on_save.js` |
+| Module      | Field to attach | Validation source              | onSave Client Script             |
+| ----------- | --------------- | ------------------------------ | -------------------------------- |
+| Attendance  | Unique_Key      | `validation/attendance.deluge` | `attendance_on_save.js`          |
+| Results     | Unique_Key      | `validation/result.deluge`     | `result_on_save.js`              |
+| Payments    | Amount          | `validation/payment.deluge`    | none; mandatory unique Reference |
+| Exam_Papers | Unique_Key      | `validation/exam_paper.deluge` | `exam_paper_on_save.js`          |
+| Enrollments | Unique_Key      | `validation/enrollment.deluge` | `enrollment_on_save.js`          |
 
 Also attach the provided key scripts to Sections, Parent_Links and Teaching_Assignments. Install scripts on both Create and Edit pages for every permitted layout. For native enrollment entry, display the Academic_Year lookup: staff select it, the Client Script creates the key, and the validation checks it matches the chosen section. The Go API derives that field automatically.
 

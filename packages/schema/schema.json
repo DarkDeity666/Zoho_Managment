@@ -191,11 +191,7 @@
         "label": "Status",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Active",
-          "Withdrawn",
-          "Graduated"
-        ]
+        "options": ["Active", "Withdrawn", "Graduated"]
       },
       {
         "key": "Admission_Key",
@@ -242,11 +238,7 @@
         "label": "Status",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Active",
-          "Completed",
-          "Withdrawn"
-        ]
+        "options": ["Active", "Completed", "Withdrawn"]
       },
       {
         "key": "Academic_Year",
@@ -311,21 +303,14 @@
         "label": "Relationship",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Mother",
-          "Father",
-          "Guardian"
-        ]
+        "options": ["Mother", "Father", "Guardian"]
       },
       {
         "key": "Status",
         "label": "Access",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Active",
-          "Revoked"
-        ]
+        "options": ["Active", "Revoked"]
       },
       {
         "key": "Unique_Key",
@@ -443,12 +428,7 @@
         "label": "Status",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Present",
-          "Absent",
-          "Late",
-          "Excused"
-        ]
+        "options": ["Present", "Absent", "Late", "Excused"]
       },
       {
         "key": "Notes",
@@ -686,12 +666,7 @@
         "label": "Payment method",
         "type": "picklist",
         "required": true,
-        "options": [
-          "Bank Transfer",
-          "UPI",
-          "Cash",
-          "Cheque"
-        ]
+        "options": ["Bank Transfer", "UPI", "Cash", "Cheque"]
       }
     ]
   },

@@ -67,9 +67,10 @@ go vet ./apps/api/...
 npm.cmd run test --workspace apps/web
 npm.cmd run build --workspace apps/web
 go build -o .cache/schooldesk.exe ./apps/api
+npm.cmd run test:smoke
 ```
 
-Verified locally: 15 Go tests, 5 frontend reporting tests, `go vet`, and the frontend production build. The tests cover concurrent duplicates, interrupted admissions, immutable payments, promotion history, parent isolation/revocation, CSRF origin checking, and mocked Zoho responses. Native Deluge compilation and CRM/Creator acceptance tests require your Zoho tenant. Browser visual QA was unavailable in this environment; use [the acceptance guide](docs/acceptance.md) for the remaining UI and live-account checks.
+Verified locally: 15 Go tests, 5 frontend reporting tests, `go vet`, the frontend production build, and an HTTP smoke check against the built app. The tests cover concurrent duplicates, interrupted admissions, immutable payments, promotion history, parent isolation/revocation, CSRF origin checking, and mocked Zoho responses. The smoke check creates isolated temporary data, exercises admission and parent authorization, and stops its own server. Native Deluge compilation and CRM/Creator acceptance tests require your Zoho tenant. Browser visual QA was unavailable in this environment; use [the acceptance guide](docs/acceptance.md) for the remaining UI and live-account checks.
 
 For a single-origin production build, the Go server serves `apps/web/dist`. Set `APP_ORIGIN` to the exact public HTTPS origin, `APP_SECURE_COOKIE=true`, and `APP_MODE=zoho`; terminate HTTPS at a trusted reverse proxy. The supplied Dockerfile supports this live configuration (`docker run --env-file .env -p 8080:8080 ...`, with `APP_ADDR=0.0.0.0:8080`). Container deployment has not been run here.
 
