@@ -45,7 +45,7 @@ func (s *Service) unique(ctx context.Context, module, key, value, except string)
 		return err
 	}
 	for _, r := range rows {
-		if str(r, key) == value && str(r, "id") != except {
+		if strings.EqualFold(str(r, key), value) && str(r, "id") != except {
 			return fmt.Errorf("duplicate %s record", module)
 		}
 	}
@@ -88,6 +88,9 @@ func (s *Service) save(ctx context.Context, module, recordID string, input Recor
 			return nil, err
 		}
 		r = old
+		if module == "Leads" && str(old, "Admission_Status") == "Confirmed" {
+			return nil, fmt.Errorf("confirmed admissions are immutable")
+		}
 	}
 	allowedEdits := map[string]string{"Leads": "Last_Name,Parent_Name,Email,Phone,Date_of_Birth,Desired_Section,Admission_Status,Follow_Up_Date,Notes", "Students": "Name,Status", "Parent_Links": "Status", "Attendance": "Status,Notes", "Results": "Marks"}
 	if recordID != "" && allowedEdits[module] == "" {
@@ -130,6 +133,11 @@ func (s *Service) save(ctx context.Context, module, recordID string, input Recor
 		}
 		if empty {
 			continue
+		}
+		if f.Type != "lookup" && f.Type != "number" && f.Type != "money" {
+			if _, ok := v.(string); !ok {
+				return nil, fmt.Errorf("%s must be text", f.Label)
+			}
 		}
 		switch f.Type {
 		case "lookup":
@@ -251,6 +259,9 @@ func (s *Service) save(ctx context.Context, module, recordID string, input Recor
 		enrollment, _ := s.related(ctx, "Enrollments", r, "Enrollment")
 		if str(enrollment, "Section") != str(exam, "Section") {
 			return nil, fmt.Errorf("student enrollment does not belong to the examination section")
+		}
+		if str(exam, "Exam_Date") < str(enrollment, "Start_Date") || str(exam, "Exam_Date") > s.today() {
+			return nil, fmt.Errorf("exam must occur during enrollment and cannot be future-dated when recording results")
 		}
 		if num(r, "Marks") > num(paper, "Max_Marks") {
 			return nil, fmt.Errorf("marks exceed maximum")

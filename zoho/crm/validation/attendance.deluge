@@ -1,0 +1,28 @@
+// Validation rule BODY. Category Validation Rule; crmAPIRequest is supplied by CRM.
+record = crmAPIRequest.toMap().get("record");
+try
+{
+    enrollment_id = record.get("Enrollment").get("id");
+    enrollment = zoho.crm.getRecordById("Enrollments",enrollment_id.toLong());
+    year = zoho.crm.getRecordById("Academic_Years",enrollment.get("Academic_Year").get("id").toLong());
+    day = record.get("Attendance_Date").toDate();
+    if(day > zoho.currentdate || day < enrollment.get("Start_Date").toDate() || day > year.get("End_Date").toDate())
+    {
+        return {"status":"failure","message":"Attendance must be within enrollment dates and cannot be future-dated."};
+    }
+    expected_key = enrollment_id + "-" + day.toString("yyyy-MM-dd");
+    if(ifnull(record.get("Unique_Key"),"") != expected_key)
+    {
+        return {"status":"failure","message":"Attendance key is incorrect. Use the configured attendance form."};
+    }
+    allowed = {"Present","Absent","Late","Excused"};
+    if(!allowed.contains(record.get("Status")))
+    {
+        return {"status":"failure","message":"Choose a valid attendance status."};
+    }
+    return {"status":"success"};
+}
+catch(e)
+{
+    return {"status":"failure","message":"Enrollment, date and status are required; related records must exist."};
+}

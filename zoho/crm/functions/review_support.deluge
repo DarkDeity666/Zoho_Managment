@@ -1,0 +1,96 @@
+// Run after attendance changes and payment creation, and daily for each enrollment.
+// Returns a message for logs; does not send mail or contact parents automatically.
+string standalone.review_support(string enrollment_id)
+{
+    enrollment = zoho.crm.getRecordById("Enrollments",enrollment_id.toLong());
+    dates = List();
+    by_date = Map();
+    complete = false;
+    for each page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        entries = zoho.crm.searchRecords("Attendance","(Enrollment:equals:" + enrollment_id + ")",page,200);
+        for each entry in entries
+        {
+            if(entry.get("Enrollment").get("id") == enrollment_id)
+            {
+                day = entry.get("Attendance_Date");
+                if(!by_date.containKey(day)) { dates.add(day); }
+                by_date.put(day,entry.get("Status"));
+            }
+        }
+        if(entries.size() < 200) { complete = true; break; }
+    }
+    if(!complete) { return "Attendance exceeds the reconciliation window; no follow-ups changed."; }
+    dates = dates.sort(false);
+    seen = 0;
+    counted = 0;
+    present = 0;
+    for each day in dates
+    {
+        if(seen >= 30) { break; }
+        seen = seen + 1;
+        attendance_status = by_date.get(day);
+        if(attendance_status != "Excused")
+        {
+            counted = counted + 1;
+            if(attendance_status == "Present" || attendance_status == "Late") { present = present + 1; }
+        }
+    }
+    rate = 100.0;
+    if(counted > 0) { rate = (present * 100.0 / counted).round(1); }
+    checks = List();
+    attendance_open = counted >= 5 && rate < 75 && enrollment.get("Status") == "Active";
+    checks.add({"key":"attendance-" + enrollment_id,"kind":"Attendance","open":attendance_open,"details":rate.toString() + "% attendance over " + counted.toString() + " recorded school days. Arrange a parent check-in."});
+    // Fees are queried per enrollment, avoiding whole-school joins in each run.
+    fees_complete = false;
+    for each fee_page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        fees = zoho.crm.searchRecords("Fee_Assessments","(Enrollment:equals:" + enrollment_id + ")",fee_page,200);
+        for each fee in fees
+        {
+            if(fee.get("Enrollment").get("id") == enrollment_id)
+            {
+                collected = 0.0;
+                payments_complete = false;
+                for each payment_page in {1,2,3,4,5,6,7,8,9,10}
+                {
+                    payments = zoho.crm.searchRecords("Payments","(Fee_Assessment:equals:" + fee.get("id") + ")",payment_page,200);
+                    for each payment in payments
+                    {
+                        if(payment.get("Fee_Assessment").get("id") == fee.get("id")) { collected = collected + payment.get("Amount").toDecimal(); }
+                    }
+                    if(payments.size() < 200) { payments_complete = true; break; }
+                }
+                if(!payments_complete) { return "Payment pagination limit reached; no follow-ups changed."; }
+                balance = (fee.get("Amount").toDecimal() - collected).round(2);
+                overdue = balance > 0 && fee.get("Due_Date").toDate() < zoho.currentdate;
+                checks.add({"key":"fee-" + fee.get("id"),"kind":"Overdue fee","open":overdue,"details":"INR " + balance.toString() + " outstanding. Due " + fee.get("Due_Date") + ". Follow up with the parent."});
+            }
+        }
+        if(fees.size() < 200) { fees_complete = true; break; }
+    }
+    if(!fees_complete) { return "Fee pagination limit reached; no follow-ups changed."; }
+    for each check in checks
+    {
+        matches = zoho.crm.searchRecords("School_Followups","(Unique_Key:equals:" + check.get("key") + ")");
+        existing_id = "";
+        for each existing in matches
+        {
+            if(existing.get("Unique_Key") == check.get("key")) { existing_id = existing.get("id"); }
+        }
+        status = "Resolved";
+        if(check.get("open")) { status = "Open"; }
+        values = {"Name":check.get("kind") + " - " + enrollment.get("Name"),"Enrollment":enrollment_id,"Kind":check.get("kind"),"Details":check.get("details"),"Status":status,"Unique_Key":check.get("key")};
+        if(existing_id != "")
+        {
+            result = zoho.crm.updateRecord("School_Followups",existing_id.toLong(),values);
+            if(result.get("id") == null) { return "A follow-up update failed. Retry review."; }
+        }
+        else if(check.get("open"))
+        {
+            result = zoho.crm.createRecord("School_Followups",values);
+            if(result.get("id") == null) { return "A follow-up insert failed or is already running. Retry review."; }
+        }
+    }
+    return "Support review complete.";
+}

@@ -1,0 +1,23 @@
+record = crmAPIRequest.toMap().get("record");
+try
+{
+    amount = record.get("Amount").toDecimal();
+    if(amount <= 0 || amount.round(2) != amount || record.get("Payment_Date").toDate() > zoho.currentdate)
+    {
+        return {"status":"failure","message":"Payment must be positive, have at most two decimals, and not be future-dated."};
+    }
+    if(ifnull(record.get("Reference"),"").trim() == "")
+    {
+        return {"status":"failure","message":"A unique payment reference is required."};
+    }
+    fee = zoho.crm.getRecordById("Fee_Assessments",record.get("Fee_Assessment").get("id").toLong());
+    if(fee.get("id") == null)
+    {
+        return {"status":"failure","message":"The selected fee assessment does not exist."};
+    }
+    return {"status":"success"};
+}
+catch(e)
+{
+    return {"status":"failure","message":"Fee assessment, amount, date and reference are required."};
+}

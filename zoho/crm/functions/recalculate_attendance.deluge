@@ -1,0 +1,31 @@
+// Attendance create or Status edit workflow. enrollment_id = Attendance.Enrollment ID.
+void automation.recalculate_attendance(string enrollment_id)
+{
+    counted = 0;
+    present = 0;
+    complete = false;
+    for each page in {1,2,3,4,5,6,7,8,9,10}
+    {
+        records = zoho.crm.searchRecords("Attendance","(Enrollment:equals:" + enrollment_id + ")",page,200);
+        for each row in records
+        {
+            if(row.get("Enrollment").get("id") == enrollment_id && row.get("Status") != "Excused")
+            {
+                counted = counted + 1;
+                if(row.get("Status") == "Present" || row.get("Status") == "Late") { present = present + 1; }
+            }
+        }
+        if(records.size() < 200) { complete = true; break; }
+    }
+    if(complete)
+    {
+        percentage = 0.0;
+        if(counted > 0) { percentage = (present * 100.0 / counted).round(2); }
+        response = zoho.crm.updateRecord("Enrollments",enrollment_id.toLong(),{"Attendance_Percentage":percentage,"Recorded_Days":counted,"Present_Days":present});
+        if(response.get("id") == null) { info "Attendance rollup update failed. Retry reconciliation."; }
+    }
+    else
+    {
+        info "Attendance rollup exceeded 2000 rows. No partial percentage was written.";
+    }
+}

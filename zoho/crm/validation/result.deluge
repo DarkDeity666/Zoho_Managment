@@ -1,0 +1,27 @@
+// Validation rule BODY; pair with before-save unique key Client Script.
+record = crmAPIRequest.toMap().get("record");
+try
+{
+    enrollment_id = record.get("Enrollment").get("id");
+    paper_id = record.get("Exam_Paper").get("id");
+    enrollment = zoho.crm.getRecordById("Enrollments",enrollment_id.toLong());
+    paper = zoho.crm.getRecordById("Exam_Papers",paper_id.toLong());
+    exam = zoho.crm.getRecordById("Exams",paper.get("Exam").get("id").toLong());
+    if(enrollment.get("Section").get("id") != exam.get("Section").get("id"))
+    {
+        return {"status":"failure","message":"Student enrollment must match the examination section."};
+    }
+    if(record.get("Marks").toDecimal() < 0 || record.get("Marks").toDecimal() > paper.get("Max_Marks").toDecimal())
+    {
+        return {"status":"failure","message":"Marks must be between zero and the paper maximum."};
+    }
+    if(ifnull(record.get("Unique_Key"),"") != enrollment_id + "-" + paper_id)
+    {
+        return {"status":"failure","message":"Result key is incorrect. Use the configured result form."};
+    }
+    return {"status":"success"};
+}
+catch(e)
+{
+    return {"status":"failure","message":"Enrollment, exam paper and marks are required; related records must exist."};
+}

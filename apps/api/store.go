@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -143,7 +144,7 @@ func (s *FileStore) Create(_ context.Context, module string, r Record) (Record, 
 	for _, f := range moduleByKey[module].Fields {
 		if f.Unique && str(r, f.Key) != "" {
 			for _, old := range s.Data[module] {
-				if str(old, f.Key) == str(r, f.Key) {
+				if strings.EqualFold(str(old, f.Key), str(r, f.Key)) {
 					return nil, fmt.Errorf("duplicate %s", f.Label)
 				}
 			}
@@ -171,7 +172,7 @@ func (s *FileStore) Update(_ context.Context, module, recordID string, r Record)
 		for _, f := range moduleByKey[module].Fields {
 			if f.Unique && str(next, f.Key) != "" {
 				for _, other := range s.Data[module] {
-					if str(other, "id") != recordID && str(other, f.Key) == str(next, f.Key) {
+					if str(other, "id") != recordID && strings.EqualFold(str(other, f.Key), str(next, f.Key)) {
 						return nil, fmt.Errorf("duplicate %s", f.Label)
 					}
 				}

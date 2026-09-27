@@ -689,5 +689,50 @@
         ]
       }
     ]
+  },
+  {
+    "key": "School_Followups",
+    "label": "School followups",
+    "singular": "School Followup",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Enrollment",
+        "label": "Enrollment",
+        "type": "lookup",
+        "ref": "Enrollments",
+        "readonly": true
+      },
+      {
+        "key": "Kind",
+        "label": "Kind",
+        "type": "text",
+        "readonly": true
+      },
+      {
+        "key": "Details",
+        "label": "Details",
+        "type": "textarea",
+        "readonly": true
+      },
+      {
+        "key": "Status",
+        "label": "Status",
+        "type": "text",
+        "readonly": true
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
   }
 ]
