@@ -371,10 +371,15 @@
         "required": true
       },
       {
+        "key": "Requested_Class",
+        "label": "Requested class (webform)",
+        "type": "text"
+      },
+      {
         "key": "Desired_Section",
         "label": "Requested section",
         "type": "lookup",
-        "required": true,
+        "required": false,
         "ref": "Sections"
       },
       {
