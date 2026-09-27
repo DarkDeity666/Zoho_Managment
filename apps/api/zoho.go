@@ -96,6 +96,22 @@ func rowsFrom(body Record) []Record {
 	return out
 }
 func asList(v any) []any { r, _ := v.([]any); return r }
+
+// Keep CRM system metadata and owner identities out of the companion's data
+// contract. It also prevents updates from echoing read-only system fields.
+func cleanCRMRecord(module string, r Record) Record {
+	clean := Record{"id": str(r, "id")}
+	for _, f := range moduleByKey[module].Fields {
+		if value, ok := r[f.Key]; ok {
+			if f.Type == "lookup" {
+				clean[f.Key] = str(r, f.Key)
+			} else {
+				clean[f.Key] = value
+			}
+		}
+	}
+	return clean
+}
 func (z *ZohoStore) List(ctx context.Context, module string) ([]Record, error) {
 	out := []Record{}
 	pageToken := ""
@@ -114,7 +130,9 @@ func (z *ZohoStore) List(ctx context.Context, module string) ([]Record, error) {
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, rowsFrom(body)...)
+		for _, record := range rowsFrom(body) {
+			out = append(out, cleanCRMRecord(module, record))
+		}
 		info, _ := body["info"].(map[string]any)
 		if info == nil || info["more_records"] != true {
 			return out, nil
@@ -135,11 +153,13 @@ func (z *ZohoStore) Get(ctx context.Context, module, recordID string) (Record, e
 	if len(rows) == 0 {
 		return nil, errNotFound
 	}
-	return rows[0], nil
+	return cleanCRMRecord(module, rows[0]), nil
 }
 func (z *ZohoStore) write(ctx context.Context, method, module string, r Record) (Record, error) {
-	payload := clone(r)
-	delete(payload, "Created_Time")
+	payload := cleanCRMRecord(module, r)
+	if str(payload, "id") == "" {
+		delete(payload, "id")
+	}
 	for _, f := range moduleByKey[module].Fields {
 		if f.Type == "lookup" && str(payload, f.Key) != "" {
 			payload[f.Key] = Record{"id": str(payload, f.Key)}

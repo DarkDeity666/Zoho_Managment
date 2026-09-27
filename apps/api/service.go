@@ -26,6 +26,47 @@ func (s *Service) dataset(ctx context.Context) (Dataset, error) {
 		}
 		d[m.Key] = rows
 	}
+	// Read-time summaries keep the companion accurate even if a native workflow
+	// is awaiting reconciliation. Persisted CRM summaries remain for CRM reports.
+	for _, enrollment := range d["Enrollments"] {
+		counted, present := 0, 0
+		for _, day := range d["Attendance"] {
+			if str(day, "Enrollment") != str(enrollment, "id") || str(day, "Status") == "Excused" {
+				continue
+			}
+			counted++
+			if str(day, "Status") == "Present" || str(day, "Status") == "Late" {
+				present++
+			}
+		}
+		enrollment["Recorded_Days"] = counted
+		enrollment["Present_Days"] = present
+		enrollment["Attendance_Percentage"] = nil
+		if counted > 0 {
+			enrollment["Attendance_Percentage"] = math.Round(float64(present)/float64(counted)*10000) / 100
+		}
+	}
+	collected := map[string]int64{}
+	for _, payment := range d["Payments"] {
+		collected[str(payment, "Fee_Assessment")] += cents(num(payment, "Amount"))
+	}
+	for _, fee := range d["Fee_Assessments"] {
+		paid := collected[str(fee, "id")]
+		balance := cents(num(fee, "Amount")) - paid
+		fee["Amount_Collected"] = float64(paid) / 100
+		fee["Outstanding"] = float64(max(int64(0), balance)) / 100
+		fee["Credit"] = float64(max(int64(0), -balance)) / 100
+		status := "Unpaid"
+		if paid > 0 {
+			status = "Partial"
+		}
+		if balance <= 0 {
+			status = "Paid"
+		} else if str(fee, "Due_Date") < s.today() {
+			status = "Overdue"
+		}
+		fee["Payment_Status"] = status
+	}
 	return d, nil
 }
 func (s *Service) related(ctx context.Context, module string, r Record, key string) (Record, error) {
@@ -81,6 +122,9 @@ func (s *Service) save(ctx context.Context, module, recordID string, input Recor
 	if !ok {
 		return nil, fmt.Errorf("unknown module")
 	}
+	if module == "School_Followups" {
+		return nil, fmt.Errorf("follow-ups are generated from school records")
+	}
 	r := Record{}
 	if recordID != "" {
 		old, err := s.Store.Get(ctx, module, recordID)
@@ -92,7 +136,7 @@ func (s *Service) save(ctx context.Context, module, recordID string, input Recor
 			return nil, fmt.Errorf("confirmed admissions are immutable")
 		}
 	}
-	allowedEdits := map[string]string{"Leads": "Last_Name,Parent_Name,Email,Phone,Date_of_Birth,Desired_Section,Admission_Status,Follow_Up_Date,Notes", "Students": "Name,Status", "Parent_Links": "Status", "Attendance": "Status,Notes", "Results": "Marks"}
+	allowedEdits := map[string]string{"Leads": "Last_Name,Parent_Name,Email,Phone,Date_of_Birth,Requested_Class,Desired_Section,Admission_Status,Follow_Up_Date,Notes", "Students": "Name,Status", "Parent_Links": "Status", "Attendance": "Status,Notes", "Results": "Marks"}
 	if recordID != "" && allowedEdits[module] == "" {
 		return nil, fmt.Errorf("historical records are immutable; create a new record")
 	}
@@ -303,6 +347,18 @@ func (s *Service) Admit(ctx context.Context, leadID string) (Record, error) {
 	if str(lead, "Admission_Status") == "Rejected" {
 		return nil, fmt.Errorf("rejected admissions must be reopened first")
 	}
+	if str(lead, "Last_Name") == "" || str(lead, "Parent_Name") == "" {
+		return nil, fmt.Errorf("child and parent names are required before confirmation")
+	}
+	if _, err := time.Parse("2006-01-02", str(lead, "Date_of_Birth")); err != nil || str(lead, "Date_of_Birth") >= s.today() {
+		return nil, fmt.Errorf("a valid past date of birth is required before confirmation")
+	}
+	email := strings.ToLower(strings.TrimSpace(str(lead, "Email")))
+	parsed, emailErr := mail.ParseAddress(email)
+	if emailErr != nil || parsed.Address != email || strings.ContainsAny(email, "()\\,:") {
+		return nil, fmt.Errorf("a valid parent email is required before confirmation")
+	}
+	lead["Email"] = email
 	section, err := s.Store.Get(ctx, "Sections", str(lead, "Desired_Section"))
 	if err != nil {
 		return nil, fmt.Errorf("select a valid section before confirming")
