@@ -1,0 +1,651 @@
+[
+  {
+    "key": "Academic_Years",
+    "label": "Academic years",
+    "singular": "Academic Year",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Start_Date",
+        "label": "Start date",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "End_Date",
+        "label": "End date",
+        "type": "date",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "School_Classes",
+    "label": "School classes",
+    "singular": "School Class",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Grade",
+        "label": "Grade",
+        "type": "number",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "Sections",
+    "label": "Sections",
+    "singular": "Section",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Academic_Year",
+        "label": "Academic year",
+        "type": "lookup",
+        "required": true,
+        "ref": "Academic_Years"
+      },
+      {
+        "key": "School_Class",
+        "label": "Class",
+        "type": "lookup",
+        "required": true,
+        "ref": "School_Classes"
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Subjects",
+    "label": "Subjects",
+    "singular": "Subject",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Code",
+        "label": "Subject code",
+        "type": "text",
+        "required": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Teachers",
+    "label": "Teachers",
+    "singular": "Teacher",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Email",
+        "label": "Email",
+        "type": "email",
+        "required": true
+      },
+      {
+        "key": "Phone",
+        "label": "Phone",
+        "type": "phone"
+      }
+    ]
+  },
+  {
+    "key": "Teaching_Assignments",
+    "label": "Teaching assignments",
+    "singular": "Teaching Assignment",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Section",
+        "label": "Section",
+        "type": "lookup",
+        "required": true,
+        "ref": "Sections"
+      },
+      {
+        "key": "Subject",
+        "label": "Subject",
+        "type": "lookup",
+        "required": true,
+        "ref": "Subjects"
+      },
+      {
+        "key": "Teacher",
+        "label": "Teacher",
+        "type": "lookup",
+        "required": true,
+        "ref": "Teachers"
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Students",
+    "label": "Students",
+    "singular": "Student",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Student_ID",
+        "label": "Student ID",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      },
+      {
+        "key": "Date_of_Birth",
+        "label": "Date of birth",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "Status",
+        "label": "Status",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Active",
+          "Withdrawn",
+          "Graduated"
+        ]
+      },
+      {
+        "key": "Admission_Key",
+        "label": "Admission key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Enrollments",
+    "label": "Enrollments",
+    "singular": "Enrollment",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Student",
+        "label": "Student",
+        "type": "lookup",
+        "required": true,
+        "ref": "Students"
+      },
+      {
+        "key": "Section",
+        "label": "Section",
+        "type": "lookup",
+        "required": true,
+        "ref": "Sections"
+      },
+      {
+        "key": "Start_Date",
+        "label": "Enrollment start",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "Status",
+        "label": "Status",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Active",
+          "Completed",
+          "Withdrawn"
+        ]
+      },
+      {
+        "key": "Academic_Year",
+        "label": "Academic year",
+        "type": "lookup",
+        "readonly": true,
+        "ref": "Academic_Years"
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Parent_Links",
+    "label": "Parent links",
+    "singular": "Parent Link",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Student",
+        "label": "Student",
+        "type": "lookup",
+        "required": true,
+        "ref": "Students"
+      },
+      {
+        "key": "Parent_Email",
+        "label": "Parent email",
+        "type": "email",
+        "required": true
+      },
+      {
+        "key": "Relationship",
+        "label": "Relationship",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Mother",
+          "Father",
+          "Guardian"
+        ]
+      },
+      {
+        "key": "Status",
+        "label": "Access",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Active",
+          "Revoked"
+        ]
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Leads",
+    "label": "Admissions",
+    "singular": "Admission",
+    "fields": [
+      {
+        "key": "Last_Name",
+        "label": "Child name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Parent_Name",
+        "label": "Parent name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Email",
+        "label": "Parent email",
+        "type": "email",
+        "required": true
+      },
+      {
+        "key": "Phone",
+        "label": "Phone",
+        "type": "phone"
+      },
+      {
+        "key": "Date_of_Birth",
+        "label": "Date of birth",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "Desired_Section",
+        "label": "Requested section",
+        "type": "lookup",
+        "required": true,
+        "ref": "Sections"
+      },
+      {
+        "key": "Admission_Status",
+        "label": "Admission status",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "New",
+          "Contacted",
+          "Visit Scheduled",
+          "Confirmed",
+          "Rejected"
+        ]
+      },
+      {
+        "key": "Follow_Up_Date",
+        "label": "Follow-up date",
+        "type": "date"
+      },
+      {
+        "key": "Notes",
+        "label": "Notes",
+        "type": "textarea"
+      },
+      {
+        "key": "Student",
+        "label": "Student",
+        "type": "lookup",
+        "readonly": true,
+        "ref": "Students"
+      }
+    ]
+  },
+  {
+    "key": "Attendance",
+    "label": "Attendance",
+    "singular": "Attendance Record",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Enrollment",
+        "label": "Enrollment",
+        "type": "lookup",
+        "required": true,
+        "ref": "Enrollments"
+      },
+      {
+        "key": "Attendance_Date",
+        "label": "Date",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "Status",
+        "label": "Status",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Present",
+          "Absent",
+          "Late",
+          "Excused"
+        ]
+      },
+      {
+        "key": "Notes",
+        "label": "Notes",
+        "type": "textarea"
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Exams",
+    "label": "Examinations",
+    "singular": "Examination",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Section",
+        "label": "Section",
+        "type": "lookup",
+        "required": true,
+        "ref": "Sections"
+      },
+      {
+        "key": "Exam_Date",
+        "label": "Exam date",
+        "type": "date",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "Exam_Papers",
+    "label": "Exam papers",
+    "singular": "Exam Paper",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Exam",
+        "label": "Examination",
+        "type": "lookup",
+        "required": true,
+        "ref": "Exams"
+      },
+      {
+        "key": "Subject",
+        "label": "Subject",
+        "type": "lookup",
+        "required": true,
+        "ref": "Subjects"
+      },
+      {
+        "key": "Max_Marks",
+        "label": "Maximum marks",
+        "type": "number",
+        "required": true
+      },
+      {
+        "key": "Pass_Marks",
+        "label": "Passing marks",
+        "type": "number",
+        "required": true
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Results",
+    "label": "Results",
+    "singular": "Result",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Enrollment",
+        "label": "Enrollment",
+        "type": "lookup",
+        "required": true,
+        "ref": "Enrollments"
+      },
+      {
+        "key": "Exam_Paper",
+        "label": "Exam paper",
+        "type": "lookup",
+        "required": true,
+        "ref": "Exam_Papers"
+      },
+      {
+        "key": "Marks",
+        "label": "Marks",
+        "type": "number",
+        "required": true
+      },
+      {
+        "key": "Percentage",
+        "label": "Percentage",
+        "type": "number",
+        "readonly": true
+      },
+      {
+        "key": "Grade",
+        "label": "Grade",
+        "type": "text",
+        "readonly": true
+      },
+      {
+        "key": "Unique_Key",
+        "label": "Unique key",
+        "type": "text",
+        "readonly": true,
+        "unique": true
+      }
+    ]
+  },
+  {
+    "key": "Fee_Assessments",
+    "label": "Fee assessments",
+    "singular": "Fee Assessment",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Enrollment",
+        "label": "Enrollment",
+        "type": "lookup",
+        "required": true,
+        "ref": "Enrollments"
+      },
+      {
+        "key": "Amount",
+        "label": "Total fee (INR)",
+        "type": "money",
+        "required": true
+      },
+      {
+        "key": "Due_Date",
+        "label": "Due date",
+        "type": "date",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "Payments",
+    "label": "Payments",
+    "singular": "Payment",
+    "fields": [
+      {
+        "key": "Name",
+        "label": "Name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "Fee_Assessment",
+        "label": "Fee assessment",
+        "type": "lookup",
+        "required": true,
+        "ref": "Fee_Assessments"
+      },
+      {
+        "key": "Amount",
+        "label": "Amount (INR)",
+        "type": "money",
+        "required": true
+      },
+      {
+        "key": "Payment_Date",
+        "label": "Payment date",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "Reference",
+        "label": "Receipt / transaction reference",
+        "type": "text",
+        "required": true,
+        "unique": true
+      },
+      {
+        "key": "Method",
+        "label": "Payment method",
+        "type": "picklist",
+        "required": true,
+        "options": [
+          "Bank Transfer",
+          "UPI",
+          "Cash",
+          "Cheque"
+        ]
+      }
+    ]
+  }
+]
