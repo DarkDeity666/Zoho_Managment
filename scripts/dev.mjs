@@ -1,16 +1,26 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 mkdirSync(".cache/go-build", { recursive: true });
+const apiBinary = resolve(process.platform === "win32" ? ".cache/schooldesk-dev.exe" : ".cache/schooldesk-dev");
+const build = spawnSync("go", ["build", "-o", apiBinary, "./apps/api"], {
+  stdio: "inherit",
+  windowsHide: true,
+  env: { ...process.env, GOCACHE: resolve(".cache/go-build") },
+});
+if (build.error || build.status !== 0) {
+  console.error(build.error?.message || "Go build failed");
+  process.exit(1);
+}
 const children = [
-  spawn("go", ["run", "./apps/api"], {
+  spawn(apiBinary, [], {
     stdio: "inherit",
-    env: { ...process.env, GOCACHE: resolve(".cache/go-build") },
+    windowsHide: true,
   }),
   spawn(
     process.execPath,
     ["node_modules/vite/bin/vite.js", "--config", "apps/web/vite.config.js"],
-    { stdio: "inherit" },
+    { stdio: "inherit", windowsHide: true },
   ),
 ];
 let stopping = false;

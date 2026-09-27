@@ -12,6 +12,8 @@
     "dev:api": "go run ./apps/api",
     "build": "npm run build --workspace apps/web && go build -o .cache/schooldesk.exe ./apps/api",
     "test": "go test ./apps/api/... && npm run test --workspace apps/web",
+    "test:smoke": "node scripts/smoke.mjs",
+    "format": "prettier --write apps/web/src scripts packages/schema/schema.json docs",
     "zoho:token": "node scripts/zoho.mjs token",
     "zoho:plan": "node scripts/zoho.mjs plan",
     "zoho:provision": "node scripts/zoho.mjs provision"
