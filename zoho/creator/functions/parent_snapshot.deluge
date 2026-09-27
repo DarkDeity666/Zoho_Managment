@@ -1,0 +1,144 @@
+// Private Creator portal only. The current parent comes from Creator's session.
+// Never accept a parent email, role, access token or user identity as a parameter.
+map parent_snapshot(string student_id, string enrollment_id)
+{
+    email = ifnull(zoho.loginuserid,"").toLowerCase().trim();
+    if(email == "" || email == "public" || email.contains("(") || email.contains(")") || email.contains(":") || email.contains(",") || email.contains("\\"))
+    {
+        return {"ok":false,"error":"Sign in to your private parent portal."};
+    }
+    try
+    {
+        links_response = thisapp.crm_search("Parent_Links","((Parent_Email:equals:" + email + ")and(Status:equals:Active))");
+        if(!links_response.get("ok")) { return links_response; }
+        children = List();
+        allowed_ids = List();
+        for each link in links_response.get("rows")
+        {
+            // CRM text search can normalize punctuation; recheck exact identity.
+            if(link.get("Parent_Email").toLowerCase().trim() == email && link.get("Status") == "Active")
+            {
+                child_id = link.get("Student").get("id");
+                if(!allowed_ids.contains(child_id))
+                {
+                    student = zoho.crm.getRecordById("Students",child_id.toLong(),Map(),"school_crm");
+                    if(student.get("id") == null) { return {"ok":false,"error":"Student profile is unavailable."}; }
+                    children.add({"id":child_id,"Name":student.get("Name"),"Student_ID":student.get("Student_ID"),"Date_of_Birth":student.get("Date_of_Birth"),"Status":student.get("Status")});
+                    allowed_ids.add(child_id);
+                }
+            }
+        }
+        if(children.isEmpty()) { return {"ok":false,"error":"No children are linked to your account. Contact the school office."}; }
+        selected_id = ifnull(student_id,"");
+        if(selected_id == "") { selected_id = children.get(0).get("id"); }
+        if(!allowed_ids.contains(selected_id)) { return {"ok":false,"error":"You do not have access to this student."}; }
+        selected = Map();
+        for each child in children { if(child.get("id") == selected_id) { selected = child; } }
+        enrollment_response = thisapp.crm_search("Enrollments","(Student:equals:" + selected_id + ")");
+        if(!enrollment_response.get("ok")) { return enrollment_response; }
+        enrollments = List();
+        active = Map();
+        selected_enrollment = Map();
+        for each en in enrollment_response.get("rows")
+        {
+            if(en.get("Student").get("id") == selected_id)
+            {
+                enrollments.add(en);
+                if(active.isEmpty() || en.get("Status") == "Active") { active = en; }
+                if(en.get("id") == ifnull(enrollment_id,"")) { selected_enrollment = en; }
+            }
+        }
+        if(ifnull(enrollment_id,"") != "" && selected_enrollment.isEmpty())
+        {
+            return {"ok":false,"error":"You do not have access to this enrollment."};
+        }
+        if(selected_enrollment.isEmpty()) { selected_enrollment = active; }
+        output = {"ok":true,"children":children,"student":selected,"enrollments":enrollments,"enrollment":selected_enrollment,"attendance":List(),"results":List(),"fees":List(),"payments":List(),"attendance_percentage":"No records","performance":"No results","outstanding":0,"class_name":"Not enrolled","section_name":"Not enrolled"};
+        if(selected_enrollment.isEmpty()) { return output; }
+        en_id = selected_enrollment.get("id");
+        section = zoho.crm.getRecordById("Sections",selected_enrollment.get("Section").get("id").toLong(),Map(),"school_crm");
+        output.put("section_name",section.get("Name"));
+        output.put("class_name",section.get("School_Class").get("name"));
+        attendance_response = thisapp.crm_search("Attendance","(Enrollment:equals:" + en_id + ")");
+        result_response = thisapp.crm_search("Results","(Enrollment:equals:" + en_id + ")");
+        fee_response = thisapp.crm_search("Fee_Assessments","(Enrollment:equals:" + en_id + ")");
+        if(!attendance_response.get("ok")) { return attendance_response; }
+        if(!result_response.get("ok")) { return result_response; }
+        if(!fee_response.get("ok")) { return fee_response; }
+        attendance_rows = List();
+        counted = 0;
+        present = 0;
+        for each row in attendance_response.get("rows")
+        {
+            if(row.get("Enrollment").get("id") == en_id)
+            {
+                attendance_rows.add({"date":row.get("Attendance_Date"),"status":row.get("Status")});
+                if(row.get("Status") != "Excused")
+                {
+                    counted = counted + 1;
+                    if(row.get("Status") == "Present" || row.get("Status") == "Late") { present = present + 1; }
+                }
+            }
+        }
+        output.put("attendance",attendance_rows);
+        if(counted > 0) { output.put("attendance_percentage",(present * 100.0 / counted).round(1).toString() + "%"); }
+        result_rows = List();
+        paper_cache = Map();
+        obtained = 0.0;
+        maximum = 0.0;
+        for each row in result_response.get("rows")
+        {
+            if(row.get("Enrollment").get("id") == en_id)
+            {
+                paper_id = row.get("Exam_Paper").get("id");
+                if(!paper_cache.containKey(paper_id))
+                {
+                    paper_cache.put(paper_id,zoho.crm.getRecordById("Exam_Papers",paper_id.toLong(),Map(),"school_crm"));
+                }
+                paper = paper_cache.get(paper_id);
+                obtained = obtained + row.get("Marks").toDecimal();
+                maximum = maximum + paper.get("Max_Marks").toDecimal();
+                result_rows.add({"subject":paper.get("Subject").get("name"),"exam":paper.get("Exam").get("name"),"marks":row.get("Marks"),"maximum":paper.get("Max_Marks"),"grade":row.get("Grade")});
+            }
+        }
+        output.put("results",result_rows);
+        if(maximum > 0) { output.put("performance",(obtained * 100.0 / maximum).round(1).toString() + "%"); }
+        fee_rows = List();
+        payment_rows = List();
+        total_outstanding = 0.0;
+        for each fee in fee_response.get("rows")
+        {
+            if(fee.get("Enrollment").get("id") == en_id)
+            {
+                payment_response = thisapp.crm_search("Payments","(Fee_Assessment:equals:" + fee.get("id") + ")");
+                if(!payment_response.get("ok")) { return payment_response; }
+                collected = 0.0;
+                for each payment in payment_response.get("rows")
+                {
+                    if(payment.get("Fee_Assessment").get("id") == fee.get("id"))
+                    {
+                        collected = collected + payment.get("Amount").toDecimal();
+                        payment_rows.add({"fee":fee.get("Name"),"date":payment.get("Payment_Date"),"amount":payment.get("Amount"),"reference":payment.get("Reference"),"method":payment.get("Method")});
+                    }
+                }
+                outstanding = (fee.get("Amount").toDecimal() - collected).round(2);
+                credit = 0.0;
+                status = "Unpaid";
+                if(collected > 0) { status = "Partial"; }
+                if(outstanding <= 0) { status = "Paid"; credit = 0 - outstanding; outstanding = 0; }
+                else if(fee.get("Due_Date").toDate() < zoho.currentdate) { status = "Overdue"; }
+                total_outstanding = total_outstanding + outstanding;
+                fee_rows.add({"name":fee.get("Name"),"due":fee.get("Due_Date"),"total":fee.get("Amount"),"collected":collected.round(2),"outstanding":outstanding,"credit":credit,"status":status});
+            }
+        }
+        output.put("fees",fee_rows);
+        output.put("payments",payment_rows);
+        output.put("outstanding",total_outstanding.round(2));
+        return output;
+    }
+    catch(e)
+    {
+        // Never return exception bodies, OAuth responses or unrelated CRM records.
+        return {"ok":false,"error":"School records could not be loaded. Please contact the school office."};
+    }
+}

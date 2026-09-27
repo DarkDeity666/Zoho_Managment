@@ -261,6 +261,24 @@
         "type": "text",
         "readonly": true,
         "unique": true
+      },
+      {
+        "key": "Attendance_Percentage",
+        "label": "Attendance percentage",
+        "type": "number",
+        "readonly": true
+      },
+      {
+        "key": "Recorded_Days",
+        "label": "Recorded days",
+        "type": "number",
+        "readonly": true
+      },
+      {
+        "key": "Present_Days",
+        "label": "Present days",
+        "type": "number",
+        "readonly": true
       }
     ]
   },
@@ -594,6 +612,30 @@
         "label": "Due date",
         "type": "date",
         "required": true
+      },
+      {
+        "key": "Amount_Collected",
+        "label": "Amount collected",
+        "type": "money",
+        "readonly": true
+      },
+      {
+        "key": "Outstanding",
+        "label": "Outstanding",
+        "type": "money",
+        "readonly": true
+      },
+      {
+        "key": "Credit",
+        "label": "Credit",
+        "type": "money",
+        "readonly": true
+      },
+      {
+        "key": "Payment_Status",
+        "label": "Payment status",
+        "type": "text",
+        "readonly": true
       }
     ]
   },
