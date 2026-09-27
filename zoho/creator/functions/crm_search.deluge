@@ -1,0 +1,32 @@
+// Creator custom function; return type Map, arguments module (string), criteria (string).
+// Internal helper ONLY. Do not expose this function through a public/custom API.
+map crm_search(string module, string criteria)
+{
+    records = List();
+    try
+    {
+        for each page in {1,2,3,4,5,6,7,8,9,10}
+        {
+            batch = zoho.crm.searchRecords(module,criteria,page,200,Map(),"school_crm");
+            for each row in batch
+            {
+                if(row.get("id") == null)
+                {
+                    return {"ok":false,"error":"CRM data could not be loaded."};
+                }
+                records.add(row);
+            }
+            if(batch.size() < 200)
+            {
+                return {"ok":true,"rows":records};
+            }
+        }
+    }
+    catch(e)
+    {
+        return {"ok":false,"error":"CRM is unavailable. Please try again shortly."};
+    }
+    // Never silently show truncated attendance, marks or payment totals.
+    // Narrow the date range / introduce cursor pagination for larger datasets.
+    return {"ok":false,"error":"Too many records for this view. Contact the school office."};
+}

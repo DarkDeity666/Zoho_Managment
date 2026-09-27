@@ -1,0 +1,29 @@
+// Workflow on Results create and Marks edit; argument result_id = Results.ID.
+void automation.calculate_result(string result_id)
+{
+    result = zoho.crm.getRecordById("Results",result_id.toLong());
+    paper = zoho.crm.getRecordById("Exam_Papers",result.get("Exam_Paper").get("id").toLong());
+    maximum = paper.get("Max_Marks").toDecimal();
+    marks = result.get("Marks").toDecimal();
+    if(maximum > 0 && marks >= 0 && marks <= maximum)
+    {
+        percentage = (marks / maximum * 100).round(2);
+        grade = "F";
+        if(percentage >= 90) { grade = "A+"; }
+        else if(percentage >= 80) { grade = "A"; }
+        else if(percentage >= 70) { grade = "B"; }
+        else if(percentage >= 60) { grade = "C"; }
+        else if(percentage >= 40) { grade = "D"; }
+        if(marks < paper.get("Pass_Marks").toDecimal()) { grade = "F"; }
+        result_update = Map();
+        result_update.put("Percentage",percentage);
+        result_update.put("Grade",grade);
+        // No recursive workflow trigger: derived fields are not editable by staff.
+        response = zoho.crm.updateRecord("Results",result_id.toLong(),result_update);
+        if(response.get("id") == null) { info "Result calculation update failed; retry the function."; }
+    }
+    else
+    {
+        info "Invalid result: validation rule must block these values before save.";
+    }
+}

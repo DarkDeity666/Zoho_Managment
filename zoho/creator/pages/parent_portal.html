@@ -1,0 +1,45 @@
+<%{
+// Create page parameters student_id and enrollment_id as Text, default empty.
+// Page link name MUST be Parent_Portal. This page must remain private.
+snapshot = thisapp.parent_snapshot(input.student_id,input.enrollment_id);
+%>
+<style>
+.school-portal{font-family:Arial,sans-serif;color:#294638;background:#f4f7ef;padding:28px;border-radius:12px;max-width:1200px;margin:auto}.school-portal h1{font-size:30px;margin:15px 0}.school-portal h2{font-size:18px;margin:26px 0 12px}.school-portal p{color:#7a8a70;line-height:1.6}.school-portal nav{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.school-portal a{display:block;padding:10px 14px;border:1px solid #d9e2d1;background:white;color:#426b36;border-radius:7px;text-decoration:none}.portal-metrics{display:flex;gap:15px;flex-wrap:wrap}.portal-metrics article{flex:1;background:white;border:1px solid #dfe7d6;border-radius:8px;padding:20px;min-width:170px}.portal-metrics strong{font-size:26px;display:block;margin-top:10px}.portal-table{overflow-x:auto;background:white;border-radius:8px;margin-bottom:20px}.school-portal table{border-collapse:collapse;width:100%;text-align:left;font-size:13px}.school-portal th,.school-portal td{padding:13px;border-bottom:1px solid #eaf0e4}.school-portal th{color:#819174;font-weight:normal}.portal-error{padding:30px;background:#fff1e7;color:#a36948;border-radius:8px}
+</style>
+<div class="school-portal">
+<% if(!snapshot.get("ok")) { %>
+<div class="portal-error"><%=thisapp.escape_html(snapshot.get("error"))%></div>
+<% } else {
+student = snapshot.get("student");
+%>
+<p>YOUR PRIVATE PARENT PORTAL</p>
+<nav aria-label="Your children">
+<% for each child in snapshot.get("children") { %>
+<a href="#Page:Parent_Portal?student_id=<%=child.get("id")%>"><%=thisapp.escape_html(child.get("Name"))%></a>
+<% } %>
+</nav>
+<h1><%=thisapp.escape_html(student.get("Name"))%></h1>
+<p><%=thisapp.escape_html(student.get("Student_ID"))%> · Born <%=thisapp.escape_html(ifnull(student.get("Date_of_Birth"),""))%> · <%=thisapp.escape_html(student.get("Status"))%></p>
+<p><%=thisapp.escape_html(snapshot.get("class_name"))%> / <%=thisapp.escape_html(snapshot.get("section_name"))%></p>
+<nav aria-label="Academic history">
+<% for each en in snapshot.get("enrollments") { %>
+<a href="#Page:Parent_Portal?student_id=<%=student.get("id")%>&amp;enrollment_id=<%=en.get("id")%>"><%=thisapp.escape_html(en.get("Academic_Year").get("name"))%> · <%=thisapp.escape_html(en.get("Status"))%></a>
+<% } %>
+</nav>
+<div class="portal-metrics"><article>Attendance<strong><%=thisapp.escape_html(snapshot.get("attendance_percentage"))%></strong></article><article>Weighted performance<strong><%=thisapp.escape_html(snapshot.get("performance"))%></strong></article><article>Outstanding fees (INR)<strong><%=snapshot.get("outstanding")%></strong></article></div>
+<h2>Attendance history</h2><p>Late counts as attended. Excused days are excluded from the percentage.</p>
+<div class="portal-table"><table><tr><th>Date</th><th>Status</th></tr>
+<% for each row in snapshot.get("attendance") { %><tr><td><%=thisapp.escape_html(row.get("date"))%></td><td><%=thisapp.escape_html(row.get("status"))%></td></tr><% } %>
+</table></div>
+<h2>Examination results</h2><div class="portal-table"><table><tr><th>Examination</th><th>Subject</th><th>Marks</th><th>Maximum</th><th>Grade</th></tr>
+<% for each row in snapshot.get("results") { %><tr><td><%=thisapp.escape_html(row.get("exam"))%></td><td><%=thisapp.escape_html(row.get("subject"))%></td><td><%=row.get("marks")%></td><td><%=row.get("maximum")%></td><td><%=thisapp.escape_html(ifnull(row.get("grade"),"Pending"))%></td></tr><% } %>
+</table></div>
+<h2>Fee status</h2><div class="portal-table"><table><tr><th>Fee</th><th>Due</th><th>Total</th><th>Collected</th><th>Outstanding</th><th>Credit</th><th>Status</th></tr>
+<% for each row in snapshot.get("fees") { %><tr><td><%=thisapp.escape_html(row.get("name"))%></td><td><%=thisapp.escape_html(row.get("due"))%></td><td><%=row.get("total")%></td><td><%=row.get("collected")%></td><td><%=row.get("outstanding")%></td><td><%=row.get("credit")%></td><td><%=thisapp.escape_html(row.get("status"))%></td></tr><% } %>
+</table></div>
+<h2>Payment history</h2><div class="portal-table"><table><tr><th>Date</th><th>Fee</th><th>Amount (INR)</th><th>Reference</th><th>Method</th></tr>
+<% for each row in snapshot.get("payments") { %><tr><td><%=thisapp.escape_html(row.get("date"))%></td><td><%=thisapp.escape_html(row.get("fee"))%></td><td><%=row.get("amount")%></td><td><%=thisapp.escape_html(row.get("reference"))%></td><td><%=thisapp.escape_html(row.get("method"))%></td></tr><% } %>
+</table></div><p>Information is read from school CRM each time this page loads. Contact the school office for corrections.</p>
+<% } %>
+</div>
+<% } %>

@@ -1,0 +1,106 @@
+// CRM Button function: string button.confirm_admission(string lead_id)
+// Map lead_id to the selected Lead ID. Configure this in the Button category.
+// Safe to retry: unique keys reconcile every stage; never duplicate a student.
+string button.confirm_admission(string lead_id)
+{
+    lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+    if(lead.get("id") == null || lead.get("Desired_Section") == null)
+    {
+        return "Choose a requested section before confirming.";
+    }
+    if(lead.get("Admission_Status") == "Rejected")
+    {
+        return "Reopen the rejected enquiry before confirming.";
+    }
+    section = zoho.crm.getRecordById("Sections",lead.get("Desired_Section").get("id").toLong());
+    year = zoho.crm.getRecordById("Academic_Years",section.get("Academic_Year").get("id").toLong());
+    if(year.get("End_Date").toDate() < zoho.currentdate)
+    {
+        return "Cannot admit into a completed academic year.";
+    }
+    if(lead.get("Date_of_Birth") == null || lead.get("Email") == null)
+    {
+        return "Complete the date of birth and parent email first.";
+    }
+    if(lead.get("Date_of_Birth").toDate() >= zoho.currentdate)
+    {
+        return "Date of birth must be in the past.";
+    }
+    students = zoho.crm.searchRecords("Students","(Admission_Key:equals:" + lead_id + ")");
+    student_id = "";
+    for each student in students
+    {
+        if(student.get("Admission_Key") == lead_id)
+        {
+            student_id = student.get("id");
+        }
+    }
+    if(student_id == "")
+    {
+        student = Map();
+        student.put("Name",lead.get("Last_Name"));
+        student.put("Student_ID","STU-" + lead_id);
+        student.put("Admission_Key",lead_id);
+        student.put("Date_of_Birth",lead.get("Date_of_Birth"));
+        student.put("Status","Active");
+        result = zoho.crm.createRecord("Students",student);
+        if(result.get("id") == null)
+        {
+            return "Student creation failed or another confirmation is running. Retry this button; inspect CRM function logs if it persists.";
+        }
+        student_id = result.get("id");
+    }
+    email = lead.get("Email").toLowerCase().trim();
+    parent_key = student_id + "-" + email;
+    // Escape CRM criteria metacharacters by accepting normal email addresses only.
+    if(email.contains("(") || email.contains(")") || email.contains(",") || email.contains(":"))
+    {
+        return "Parent email contains unsupported characters.";
+    }
+    parents = zoho.crm.searchRecords("Parent_Links","(Unique_Key:equals:" + parent_key + ")");
+    found_parent = false;
+    for each parent in parents
+    {
+        if(parent.get("Unique_Key") == parent_key) { found_parent = true; }
+    }
+    if(!found_parent)
+    {
+        parent = Map();
+        parent.put("Name",ifnull(lead.get("Parent_Name"),"Guardian"));
+        parent.put("Student",student_id);
+        parent.put("Parent_Email",email);
+        parent.put("Relationship","Guardian");
+        parent.put("Status","Active");
+        parent.put("Unique_Key",parent_key);
+        result = zoho.crm.createRecord("Parent_Links",parent);
+        if(result.get("id") == null) { return "Parent link not created. Retry confirmation to resume."; }
+    }
+    enrollment_key = student_id + "-" + year.get("id");
+    enrollments = zoho.crm.searchRecords("Enrollments","(Unique_Key:equals:" + enrollment_key + ")");
+    found_enrollment = false;
+    for each enrollment in enrollments
+    {
+        if(enrollment.get("Unique_Key") == enrollment_key) { found_enrollment = true; }
+    }
+    if(!found_enrollment)
+    {
+        start_date = zoho.currentdate;
+        if(start_date < year.get("Start_Date").toDate()) { start_date = year.get("Start_Date").toDate(); }
+        enrollment = Map();
+        enrollment.put("Name",lead.get("Last_Name") + " - " + year.get("Name"));
+        enrollment.put("Student",student_id);
+        enrollment.put("Section",section.get("id"));
+        enrollment.put("Academic_Year",year.get("id"));
+        enrollment.put("Start_Date",start_date.toString("yyyy-MM-dd"));
+        enrollment.put("Status","Active");
+        enrollment.put("Unique_Key",enrollment_key);
+        result = zoho.crm.createRecord("Enrollments",enrollment);
+        if(result.get("id") == null) { return "Enrollment not created. Retry confirmation to resume."; }
+    }
+    update = Map();
+    update.put("Admission_Status","Confirmed");
+    update.put("Student",student_id);
+    result = zoho.crm.updateRecord("Leads",lead_id.toLong(),update);
+    if(result.get("id") == null) { return "School records created. Retry to finish updating the enquiry."; }
+    return "Admission confirmed. Student, annual enrollment and parent access link are ready.";
+}
